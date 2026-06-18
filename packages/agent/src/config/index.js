@@ -37,4 +37,10 @@ export const config = {
     maxProviderStrikes: parseInt(process.env.MAX_PROVIDER_STRIKES || '2', 10),
     requiredVerificationLevel: process.env.REQUIRED_VERIFICATION_LEVEL || 'verified',
   },
+  delivery: {
+    verificationTimeout: parseInt(process.env.VERIFICATION_TIMEOUT_MINUTES || '60', 10),
+    requiredConfirmations: parseInt(process.env.REQUIRED_CONFIRMATIONS || '6', 10),
+    autoRetry: process.env.AUTO_RETRY !== 'false',
+    maxRetries: parseInt(process.env.MAX_DELIVERY_RETRIES || '3', 10),
+  },
 };

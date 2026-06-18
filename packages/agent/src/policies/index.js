@@ -1,15 +1,22 @@
-import { BudgetPolicy } from '../policies/BudgetPolicy.js';
-import { ServiceTypePolicy } from '../policies/ServiceTypePolicy.js';
-import { ServiceProviderReputationPolicy } from '../policies/ServiceProviderReputationPolicy.js';
+import { BudgetPolicy } from './BudgetPolicy.js';
+import { ServiceTypePolicy } from './ServiceTypePolicy.js';
+import { ServiceProviderReputationPolicy } from './ServiceProviderReputationPolicy.js';
+import { DeliveryVerificationPolicy } from './DeliveryVerificationPolicy.js';
 
 /**
  * Central policy engine coordinating all procurement policies.
  */
 export class PolicyEngine {
-  constructor({ budgetPolicy, serviceTypePolicy, reputationPolicy }) {
+  constructor({
+    budgetPolicy,
+    serviceTypePolicy,
+    reputationPolicy,
+    deliveryVerificationPolicy,
+  }) {
     this.budgetPolicy = budgetPolicy;
     this.serviceTypePolicy = serviceTypePolicy;
     this.reputationPolicy = reputationPolicy;
+    this.deliveryVerificationPolicy = deliveryVerificationPolicy;
   }
 
   evaluateProcurement({ serviceType, amountHBAR, providerId, humanApprovalToken }) {
@@ -36,6 +43,7 @@ export class PolicyEngine {
       BudgetPolicy: this.budgetPolicy.getConfig(),
       ServiceTypePolicy: this.serviceTypePolicy.getConfig(),
       ServiceProviderReputationPolicy: this.reputationPolicy.getConfig(),
+      DeliveryVerificationPolicy: this.deliveryVerificationPolicy.getConfig(),
     };
   }
 
@@ -53,22 +61,45 @@ export class PolicyEngine {
     if (updates.ServiceProviderReputationPolicy) {
       this.reputationPolicy.updateConfig(updates.ServiceProviderReputationPolicy);
     }
+    if (updates.DeliveryVerificationPolicy) {
+      this.deliveryVerificationPolicy.updateConfig(updates.DeliveryVerificationPolicy);
+    }
 
     return { valid: true };
   }
 
   getHooks() {
-    return [this.budgetPolicy, this.serviceTypePolicy, this.reputationPolicy];
+    return [
+      this.budgetPolicy,
+      this.serviceTypePolicy,
+      this.reputationPolicy,
+      this.deliveryVerificationPolicy,
+    ];
   }
 }
 
-export function createPolicyEngine({ spendTracker, reputationService, config }) {
+export function createPolicyEngine({
+  spendTracker,
+  reputationService,
+  filecoinService,
+  akashService,
+  config,
+}) {
   const budgetPolicy = new BudgetPolicy(config.budget, spendTracker);
   const serviceTypePolicy = new ServiceTypePolicy(config.serviceType ?? {});
   const reputationPolicy = new ServiceProviderReputationPolicy(
     config.reputation ?? {},
     reputationService,
   );
+  const deliveryVerificationPolicy = new DeliveryVerificationPolicy(
+    config.delivery ?? {},
+    { filecoinService, akashService },
+  );
 
-  return new PolicyEngine({ budgetPolicy, serviceTypePolicy, reputationPolicy });
+  return new PolicyEngine({
+    budgetPolicy,
+    serviceTypePolicy,
+    reputationPolicy,
+    deliveryVerificationPolicy,
+  });
 }

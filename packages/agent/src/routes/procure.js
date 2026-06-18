@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-export function createProcureRouter({ policyEngine, procurementStore, auditHook, reputationService }) {
+export function createProcureRouter({
+  policyEngine,
+  procurementStore,
+  auditHook,
+  reputationService,
+  procurementAgent,
+}) {
   const router = Router();
 
   async function evaluateAndCreate(serviceType, body) {
@@ -151,18 +157,52 @@ export function createProcureRouter({ policyEngine, procurementStore, auditHook,
       return res.status(400).json({ error: `Cannot confirm procurement in status: ${record.status}` });
     }
 
-    const updated = procurementStore.update(req.params.id, {
-      status: 'confirmed',
+    const highValueThreshold = 300;
+    const cost = record.estimatedCostHBAR ?? record.maxCostHBAR;
+    if (cost > highValueThreshold && !req.body.approverSignature) {
+      return res.status(400).json({
+        error: `Procurements over ${highValueThreshold} HBAR require approverSignature`,
+        requiresConfirmation: true,
+      });
+    }
+
+    procurementStore.update(req.params.id, {
+      status: 'executing',
       approverSignature: req.body.approverSignature ?? null,
       confirmedAt: new Date().toISOString(),
     });
 
     await auditHook.logProcurementEvent('procurement.confirmed', {
-      procurementId: updated.id,
-      approverSignature: updated.approverSignature,
+      procurementId: record.id,
+      approverSignature: req.body.approverSignature ?? null,
     });
 
-    res.json({ status: updated.status, procurement: updated });
+    if (!procurementAgent) {
+      return res.status(503).json({ error: 'Procurement agent not available' });
+    }
+
+    const confirmed = procurementStore.get(req.params.id);
+    const result = await procurementAgent.executeProcurement(confirmed);
+
+    const updated = procurementStore.update(req.params.id, {
+      status: result.status,
+      execution: result,
+      swap: result.swap ?? null,
+      delivery: result.delivery ?? null,
+      deliveryRef: result.deliveryRef ?? null,
+      completedAt: result.success ? new Date().toISOString() : null,
+      error: result.error ?? null,
+    });
+
+    res.json({
+      status: updated.status,
+      procurement: updated,
+      transactionDetails: {
+        swap: result.swap,
+        delivery: result.delivery,
+        hbarSpent: result.hbarSpent,
+      },
+    });
   });
 
   return router;
