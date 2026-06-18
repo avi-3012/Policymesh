@@ -1,0 +1,19 @@
+{
+  "name": "policymesh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Autonomous Hedera procurement agent for decentralized infrastructure (Filecoin, Akash)",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "agent": "npm run start --workspace=@policymesh/agent",
+    "agent:dev": "npm run dev --workspace=@policymesh/agent",
+    "web": "npm run dev --workspace=@policymesh/web",
+    "test": "npm run test --workspace=@policymesh/agent",
+    "test:all": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
