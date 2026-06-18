@@ -50,13 +50,21 @@ Health check: `GET http://localhost:3001/api/health`
 | **4** | Sat AM | Next.js frontend — dashboard, wizard, audit explorer |
 | **5** | Sat PM | Integration, deployment config, polish |
 
-## Phase 1 (Current)
+## Phase 1 ✅
 
 - [x] Monorepo with `packages/agent`
 - [x] Express server with health/status/budget endpoints
 - [x] `BudgetPolicy` with daily/monthly/per-transaction limits
 - [x] Hedera client setup (demo mode when no credentials)
 - [x] Unit tests for BudgetPolicy
+
+## Phase 2 ✅
+
+- [x] `ServiceTypePolicy` and `ServiceProviderReputationPolicy`
+- [x] `AuditHook` with HCS service (demo + live modes)
+- [x] Procurement, policy, audit, and provider REST APIs
+- [x] Policy engine with unified evaluation
+- [x] Unit tests for service policies
 
 ## License
 

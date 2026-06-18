@@ -20,4 +20,21 @@ export const config = {
     maxMonthlySpend: parseFloat(process.env.MAX_MONTHLY_SPEND || '20000'),
     minProcurementAmount: parseFloat(process.env.MIN_PROCUREMENT_AMOUNT || '10'),
   },
+  serviceType: {
+    allowedServices: ['filecoin-storage', 'akash-compute', 'akash-gpu'],
+    blockedServices: [],
+    requiresApproval: ['akash-gpu'],
+    maxServiceCost: {
+      'filecoin-storage': 300,
+      'akash-compute': 500,
+      'akash-gpu': 1000,
+    },
+  },
+  reputation: {
+    minReputationScore: parseFloat(process.env.MIN_REPUTATION_SCORE || '0.75'),
+    maxFailureRate: parseFloat(process.env.MAX_FAILURE_RATE || '0.05'),
+    minCompletedDeals: parseInt(process.env.MIN_COMPLETED_DEALS || '50', 10),
+    maxProviderStrikes: parseInt(process.env.MAX_PROVIDER_STRIKES || '2', 10),
+    requiredVerificationLevel: process.env.REQUIRED_VERIFICATION_LEVEL || 'verified',
+  },
 };
