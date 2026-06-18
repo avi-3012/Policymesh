@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: policymesh-agent
+    runtime: node
+    rootDir: packages/agent
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: true
+      - key: WEB_UI_URL
+        sync: false
+      - key: HEDERA_ACCOUNT_ID
+        sync: false
+      - key: HEDERA_PRIVATE_KEY
+        sync: false
+      - key: HCS_AUDIT_TOPIC_ID
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

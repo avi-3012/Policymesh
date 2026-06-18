@@ -10,6 +10,8 @@
     "agent": "npm run start --workspace=@policymesh/agent",
     "agent:dev": "npm run dev --workspace=@policymesh/agent",
     "web": "npm run dev --workspace=@policymesh/web",
+    "web:build": "npm run build --workspace=@policymesh/web",
+    "dev": "npm run agent:dev & npm run web",
     "test": "npm run test --workspace=@policymesh/agent",
     "test:all": "npm run test --workspaces --if-present"
   },

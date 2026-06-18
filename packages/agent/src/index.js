@@ -99,15 +99,30 @@ app.use(
   }),
 );
 
-app.get('/', (_req, res) => {
-  res.json({
+app.get('/', (req, res) => {
+  const uiUrl = process.env.WEB_UI_URL || 'http://localhost:3000';
+  const payload = {
     name: 'PolicyMesh',
-    description:
-      'Autonomous Hedera procurement agent for decentralized infrastructure',
+    type: 'api',
+    message: 'Backend API is running. Use the web dashboard for procurement.',
+    ui: uiUrl,
     docs: '/api/health',
     agentStatus: getAgentStatus(hederaClient),
     policies: Object.keys(policyEngine.getAllPolicies()),
-  });
+  };
+
+  if (req.accepts('html')) {
+    return res.type('html').send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>PolicyMesh API</title>
+<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;color:#1e293b}
+a{color:#1e3a8a}code{background:#f1f5f9;padding:.2em .4em;border-radius:4px}</style></head>
+<body><h1>PolicyMesh API</h1>
+<p>This is the <strong>backend API</strong>, not the user interface.</p>
+<p><a href="${uiUrl}">Open PolicyMesh Dashboard →</a></p>
+<p>Health check: <code>GET /api/health</code></p></body></html>`);
+  }
+
+  res.json(payload);
 });
 
 app.listen(config.port, () => {
