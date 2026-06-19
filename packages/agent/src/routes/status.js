@@ -5,6 +5,7 @@ export function createStatusRouter({
   hederaClient,
   procurementAgent,
   procurementStore,
+  langChainService,
 }) {
   const router = Router();
 
@@ -31,6 +32,7 @@ export function createStatusRouter({
       hederaConnected: hederaClient != null,
       activeProcurements: active,
       emergencyStop: procurementAgent?.emergencyStop ?? false,
+      langChainAgent: langChainService?.getStatus() ?? null,
       recentErrors: [],
     });
   });

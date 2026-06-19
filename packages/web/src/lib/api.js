@@ -52,4 +52,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ stopped }),
     }),
+  getAgentStatus: () => request('/api/agent/status'),
+  agentChat: (message, threadId) =>
+    request('/api/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, threadId }),
+    }),
 };

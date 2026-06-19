@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { hashscanTransactionUrl } from '../lib/hashscan.js';
 
 export function createProcureRouter({
   policyEngine,
@@ -7,6 +8,7 @@ export function createProcureRouter({
   auditHook,
   reputationService,
   procurementAgent,
+  config,
 }) {
   const router = Router();
 
@@ -201,6 +203,11 @@ export function createProcureRouter({
         swap: result.swap,
         delivery: result.delivery,
         hbarSpent: result.hbarSpent,
+      },
+      hashscan: {
+        swap: result.swap?.transactionHash
+          ? hashscanTransactionUrl(result.swap.transactionHash, config?.hedera?.network)
+          : null,
       },
     });
   });

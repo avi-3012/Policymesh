@@ -94,6 +94,11 @@ export function ProcurementCard({ procurement, onConfirm }) {
               </span>
             </div>
           ))}
+          {procurement.swap?.transactionHash && (
+            <p className="font-mono text-xs">
+              Swap: {procurement.swap.transactionHash}
+            </p>
+          )}
           {procurement.delivery?.pieceCid && (
             <p className="font-mono text-xs break-all">
               CID: {procurement.delivery.pieceCid}

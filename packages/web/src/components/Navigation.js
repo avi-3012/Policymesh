@@ -9,12 +9,14 @@ import {
   ScrollText,
   Server,
   Hexagon,
+  Bot,
 } from 'lucide-react';
 import clsx from 'clsx';
 
 const links = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/procure', label: 'Procure', icon: ShoppingCart },
+  { href: '/agent', label: 'Agent', icon: Bot },
   { href: '/policies', label: 'Policies', icon: Shield },
   { href: '/audit', label: 'Audit', icon: ScrollText },
   { href: '/providers', label: 'Providers', icon: Server },

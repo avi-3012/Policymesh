@@ -14,6 +14,7 @@ export const config = {
     hcsReputationTopicId: process.env.HCS_REPUTATION_TOPIC_ID,
   },
   openaiApiKey: process.env.OPENAI_API_KEY,
+  openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   budget: {
     maxPerProcurement: parseFloat(process.env.MAX_PER_PROCUREMENT || '500'),
     maxDailySpend: parseFloat(process.env.MAX_DAILY_SPEND || '2000'),

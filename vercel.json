@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm install && npm run build --workspace=@policymesh/web",
+  "outputDirectory": "packages/web/.next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://policymesh-agent.onrender.com/api/:path*"
+    }
+  ]
+}

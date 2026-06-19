@@ -56,6 +56,17 @@ export function AuditEntry({ entry }) {
           {entry.procurementId && (
             <p className="font-mono text-xs text-slate-400">{entry.procurementId.slice(0, 12)}…</p>
           )}
+          {entry.hashscan?.topic && (
+            <a
+              href={entry.hashscan.topic}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-block text-xs text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View on HashScan →
+            </a>
+          )}
         </div>
         {expanded ? (
           <ChevronUp className="h-4 w-4 text-slate-400" />

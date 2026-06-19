@@ -13,7 +13,8 @@
     "web:build": "npm run build --workspace=@policymesh/web",
     "dev": "npm run agent:dev & npm run web",
     "test": "npm run test --workspace=@policymesh/agent",
-    "test:all": "npm run test --workspaces --if-present"
+    "test:integration": "npm run test:integration --workspace=@policymesh/agent",
+    "test:all": "npm run test --workspaces --if-present && npm run test:integration --workspace=@policymesh/agent"
   },
   "engines": {
     "node": ">=18"
