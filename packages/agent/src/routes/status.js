@@ -6,6 +6,7 @@ export function createStatusRouter({
   procurementAgent,
   procurementStore,
   langChainService,
+  config,
 }) {
   const router = Router();
 
@@ -24,12 +25,34 @@ export function createStatusRouter({
         ).length
       : 0;
 
+    const demoMode = process.env.DEMO_MODE === 'true' || !process.env.HEDERA_ACCOUNT_ID;
     res.json({
       service: 'PolicyMesh',
       version: '0.1.0',
-      demoMode: process.env.DEMO_MODE === 'true' || !process.env.HEDERA_ACCOUNT_ID,
+      demoMode,
       network: process.env.HEDERA_NETWORK || 'testnet',
       hederaConnected: hederaClient != null,
+      servicesLiveMode: config?.services?.liveEnabled ?? false,
+      integrations: {
+        filecoin: {
+          live: config?.services?.liveEnabled ?? false,
+          network: 'calibration',
+          rpc: config?.services?.filecoin?.rpcUrl ?? null,
+        },
+        akash: {
+          live: config?.services?.liveEnabled ?? false,
+          network: config?.services?.akash?.network ?? 'mainnet',
+          api: config?.services?.akash?.consoleApiUrl ?? null,
+        },
+        saucerswap: {
+          live: config?.services?.liveEnabled ?? false,
+          router: config?.services?.saucerswap?.routerId ?? null,
+          priceOracle: 'coingecko',
+        },
+        hcs: {
+          auditTopicId: process.env.HCS_AUDIT_TOPIC_ID ?? null,
+        },
+      },
       activeProcurements: active,
       emergencyStop: procurementAgent?.emergencyStop ?? false,
       langChainAgent: langChainService?.getStatus() ?? null,

@@ -22,7 +22,15 @@ export function createHederaClient() {
         ? Client.forPreviewnet()
         : Client.forTestnet();
 
-  client.setOperator(accountId, PrivateKey.fromStringDer(privateKey));
+  if (privateKey.startsWith('0x')) {
+    client.setOperator(accountId, PrivateKey.fromStringECDSA(privateKey));
+  } else {
+    try {
+      client.setOperator(accountId, PrivateKey.fromStringDer(privateKey));
+    } catch {
+      client.setOperator(accountId, PrivateKey.fromStringECDSA(privateKey));
+    }
+  }
   return client;
 }
 

@@ -71,4 +71,13 @@ describe('API integration', { concurrency: false }, () => {
     assert.ok(Array.isArray(res.body.tools));
     assert.ok(res.body.tools.includes('procure_filecoin_storage'));
   });
+
+  it('GET /api/status includes integration metadata', async () => {
+    const res = await request(app).get('/api/status');
+    assert.equal(res.status, 200);
+    assert.ok('integrations' in res.body);
+    assert.ok(res.body.integrations.filecoin);
+    assert.ok(res.body.integrations.akash);
+    assert.ok(res.body.integrations.saucerswap);
+  });
 });

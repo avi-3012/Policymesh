@@ -35,9 +35,25 @@ export function createApp() {
   });
 
   const reputationService = new ReputationService({ hcsService });
-  const saucerSwapService = new SaucerSwapService({ demoMode: config.demoMode });
-  const filecoinService = new FilecoinService({ demoMode: config.demoMode, reputationService });
-  const akashService = new AkashService({ demoMode: config.demoMode, reputationService });
+  const { liveEnabled, filecoin, akash, saucerswap, priceOracle } = config.services;
+  const saucerSwapService = new SaucerSwapService({
+    demoMode: config.demoMode,
+    liveEnabled,
+    saucerConfig: saucerswap,
+    priceConfig: priceOracle,
+  });
+  const filecoinService = new FilecoinService({
+    demoMode: config.demoMode,
+    liveEnabled,
+    filecoinConfig: filecoin,
+    reputationService,
+  });
+  const akashService = new AkashService({
+    demoMode: config.demoMode,
+    liveEnabled,
+    akashConfig: akash,
+    reputationService,
+  });
 
   const policyEngine = createPolicyEngine({
     spendTracker,
@@ -89,6 +105,7 @@ export function createApp() {
       procurementAgent,
       procurementStore,
       langChainService,
+      config,
     }),
   );
   app.use('/api/policies', createPoliciesRouter({ policyEngine }));

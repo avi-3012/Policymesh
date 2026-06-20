@@ -12,6 +12,9 @@
     "web": "npm run dev --workspace=@policymesh/web",
     "web:build": "npm run build --workspace=@policymesh/web",
     "dev": "npm run agent:dev & npm run web",
+    "setup": "cp -n packages/agent/.env.example packages/agent/.env 2>/dev/null; cp -n packages/web/.env.example packages/web/.env.local 2>/dev/null; echo 'Env files ready — edit packages/agent/.env'",
+    "setup:hcs": "node scripts/setup-hcs-topic.mjs",
+    "verify": "node scripts/verify-setup.mjs",
     "test": "npm run test --workspace=@policymesh/agent",
     "test:integration": "npm run test:integration --workspace=@policymesh/agent",
     "test:all": "npm run test --workspaces --if-present && npm run test:integration --workspace=@policymesh/agent"

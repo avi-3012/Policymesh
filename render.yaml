@@ -10,6 +10,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: DEMO_MODE
+        value: false
+      - key: SERVICES_LIVE_MODE
         value: true
       - key: WEB_UI_URL
         sync: false
@@ -25,3 +27,15 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-4o-mini
+      - key: FILECOIN_RPC_URL
+        value: https://api.calibration.node.glif.io/rpc/v1
+      - key: FILECOIN_API_KEY
+        sync: false
+      - key: AKASH_CONSOLE_API_URL
+        value: https://console-api.akash.network
+      - key: AKASH_API_KEY
+        sync: false
+      - key: SAUCERSWAP_RPC_URL
+        value: https://testnet.hashio.io/api
+      - key: COINGECKO_API_KEY
+        sync: false

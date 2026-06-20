@@ -1,17 +1,25 @@
+import { SaucerSwapApiClient } from './clients/SaucerSwapApiClient.js';
+
 /**
- * SaucerSwap DEX integration for HBAR → FIL and HBAR → AKT swaps.
- * Demo mode uses simulated rates; live mode is stubbed for testnet wiring.
+ * SaucerSwap DEX + CoinGecko oracle for HBAR → FIL / AKT.
+ * Live mode fetches real market rates; swaps record live quotes (on-chain swap needs token association).
  */
 export class SaucerSwapService {
-  constructor({ demoMode = true } = {}) {
+  constructor({ demoMode = true, liveEnabled = false, saucerConfig = {}, priceConfig = {} } = {}) {
     this.demoMode = demoMode;
+    this.liveEnabled = liveEnabled && !demoMode;
     this.defaultSlippage = 0.01;
+    this.apiClient = new SaucerSwapApiClient({
+      ...saucerConfig,
+      coingeckoUrl: priceConfig.coingeckoUrl,
+      coingeckoApiKey: priceConfig.apiKey,
+    });
 
-    // Simulated testnet rates (HBAR per token unit)
     this.rates = {
       FIL: { hbarPerFil: 12.5, lastUpdated: Date.now() },
       AKT: { hbarPerAkt: 0.85, lastUpdated: Date.now() },
     };
+    this.lastRateSource = 'seed';
   }
 
   async getExchangeRate(token) {
@@ -19,9 +27,15 @@ export class SaucerSwapService {
       throw new Error(`Unsupported swap token: ${token}`);
     }
 
-    if (!this.demoMode) {
-      // Placeholder for live SaucerSwap API / contract query on testnet
-      await this.refreshRatesFromDex(token);
+    if (this.liveEnabled) {
+      try {
+        const live = await this.apiClient.getHbarToTokenRate(token);
+        const key = token === 'FIL' ? 'hbarPerFil' : 'hbarPerAkt';
+        this.rates[token] = { [key]: live.hbarPerToken, lastUpdated: Date.now() };
+        this.lastRateSource = live.source;
+      } catch (err) {
+        console.warn('[SaucerSwapService] Live rate fetch failed:', err.message);
+      }
     }
 
     const rate = this.rates[token];
@@ -30,19 +44,8 @@ export class SaucerSwapService {
       hbarPerToken: rate.hbarPerFil ?? rate.hbarPerAkt,
       tokensPerHbar: 1 / (rate.hbarPerFil ?? rate.hbarPerAkt),
       lastUpdated: new Date(rate.lastUpdated).toISOString(),
-      source: this.demoMode ? 'demo-oracle' : 'saucerswap-testnet',
-    };
-  }
-
-  async refreshRatesFromDex(token) {
-    // Simulated refresh with minor variance for realism
-    const base = token === 'FIL' ? 12.5 : 0.85;
-    const variance = (Math.random() - 0.5) * 0.02;
-    const hbarPerToken = base * (1 + variance);
-
-    this.rates[token] = {
-      [token === 'FIL' ? 'hbarPerFil' : 'hbarPerAkt']: hbarPerToken,
-      lastUpdated: Date.now(),
+      source: this.liveEnabled ? this.lastRateSource : 'demo-oracle',
+      liveEnabled: this.liveEnabled,
     };
   }
 
@@ -59,26 +62,34 @@ export class SaucerSwapService {
       minOutputAmount: minOutput,
       exchangeRate: hbarPerToken,
       slippage: this.defaultSlippage,
+      rateSource: this.lastRateSource,
     };
   }
 
   async swapHBARToToken(hbarAmount, token) {
+    await this.getExchangeRate(token);
     const quote = this.calculateSwapOutput(hbarAmount, token);
 
-    if (this.demoMode) {
+    if (!this.liveEnabled) {
       return {
         success: true,
         transactionHash: `demo-swap-${token.toLowerCase()}-${Date.now()}`,
         ...quote,
         demoMode: true,
+        swapType: 'simulated',
       };
     }
 
     return {
       success: true,
-      transactionHash: `0.0.${Math.floor(Math.random() * 100000)}@${Date.now()}`,
+      transactionHash: `live-quote-${token.toLowerCase()}-${Date.now()}`,
       ...quote,
       demoMode: false,
+      swapType: 'live-quoted',
+      note:
+        'Rate from CoinGecko + Hedera/SaucerSwap oracle. On-chain SaucerSwap execution requires WHBAR/token association on operator account.',
+      saucerSwapRouter: this.apiClient.routerId,
+      saucerSwapQuoter: this.apiClient.quoterId,
     };
   }
 }

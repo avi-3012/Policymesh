@@ -121,4 +121,18 @@ export class ReputationService {
   isBlacklisted(_providerId) {
     return false;
   }
+
+  /**
+   * Merge providers from live Filecoin/Akash APIs into the local cache.
+   * Existing seed entries are kept; live entries override by id.
+   */
+  mergeLiveProviders(providers) {
+    for (const p of providers) {
+      const existing = this.cache.get(p.id)?.data ?? {};
+      this.cache.set(p.id, {
+        data: { ...existing, ...p, reputationScore: undefined },
+        fetchedAt: Date.now(),
+      });
+    }
+  }
 }

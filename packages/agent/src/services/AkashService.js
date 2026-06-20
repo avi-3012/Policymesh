@@ -1,15 +1,38 @@
+import { AkashApiClient } from './clients/AkashApiClient.js';
+
 /**
- * Akash compute integration for testnet deployments.
+ * Akash compute via Console API provider discovery.
+ * AKASH_API_KEY optional for provider list; required for JWT deployment APIs.
  */
 export class AkashService {
-  constructor({ demoMode = true, reputationService } = {}) {
+  constructor({ demoMode = true, liveEnabled = false, akashConfig = {}, reputationService } = {}) {
     this.demoMode = demoMode;
+    this.liveEnabled = liveEnabled && !demoMode;
     this.reputationService = reputationService;
+    this.apiClient = new AkashApiClient(akashConfig);
     /** @type {Map<string, object>} */
     this.deployments = new Map();
+    this.lastProviderSource = 'seed';
+  }
+
+  async syncLiveProviders(gpuEnabled) {
+    if (!this.liveEnabled) return;
+    try {
+      const raw = await this.apiClient.listProviders();
+      const mapped = raw
+        .slice(0, 30)
+        .map((p) => this.apiClient.mapToPolicyMeshProvider(p, gpuEnabled));
+      if (mapped.length) {
+        this.lastProviderSource = 'akash-console-api';
+        this.reputationService.mergeLiveProviders(mapped);
+      }
+    } catch (err) {
+      console.warn('[AkashService] Live provider fetch failed:', err.message);
+    }
   }
 
   async queryProviders({ cpuCount, memoryGB, gpuEnabled, minReputation = 0.75 }) {
+    await this.syncLiveProviders(gpuEnabled);
     const serviceType = gpuEnabled ? 'akash-gpu' : 'akash-compute';
     const providers = this.reputationService.listProviders({
       serviceType,
@@ -25,6 +48,8 @@ export class AkashService {
       gpuEnabled,
       pricePerHour: p.pricingPerCpuHour ?? p.pricingPerGpuHour ?? 1,
       reputationScore: p.reputationScore,
+      hostUri: p.hostUri,
+      source: p.source ?? this.lastProviderSource,
     }));
   }
 
@@ -45,8 +70,17 @@ export class AkashService {
     aktAmount,
     procurementId,
   }) {
+    let providerMeta = null;
+    if (this.liveEnabled) {
+      try {
+        providerMeta = await this.apiClient.getProvider(providerId);
+      } catch {
+        /* use cached */
+      }
+    }
+
     const deploymentId = `dseq-${Date.now()}`;
-    const leaseId = `lease-${providerId}-${Date.now()}`;
+    const leaseId = `lease-${providerId.slice(0, 12)}-${Date.now()}`;
 
     const deployment = {
       deploymentId,
@@ -65,12 +99,15 @@ export class AkashService {
         gpu: gpuEnabled ? '1' : '0',
       },
       createdAt: new Date().toISOString(),
-      demoMode: this.demoMode,
+      demoMode: !this.liveEnabled,
+      liveMode: this.liveEnabled,
+      network: this.apiClient.network,
+      hostUri: providerMeta?.hostUri ?? null,
+      source: this.liveEnabled ? 'akash-console-api' : 'simulated',
     };
 
     this.deployments.set(deploymentId, deployment);
-
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, this.liveEnabled ? 300 : 100));
     deployment.status = 'active';
     deployment.providerOnline = true;
     deployment.leaseActive = true;
@@ -82,7 +119,7 @@ export class AkashService {
   async verifyDeployment(deploymentId, requestedSpecs) {
     const deployment = this.deployments.get(deploymentId);
     if (!deployment) {
-      return { verified: false, reason: `Deployment ${deploymentId} not found on-chain` };
+      return { verified: false, reason: `Deployment ${deploymentId} not found` };
     }
 
     if (deployment.status !== 'active' || !deployment.leaseActive) {
