@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://policymesh-agent.onrender.com/api/:path*"
+      "destination": "https://policymesh.onrender.com/api/:path*"
     }
   ]
 }
