@@ -1,6 +1,6 @@
 import { AbstractHook } from '@hashgraph/hedera-agent-kit';
 
-const SWAP_TOOLS = ['swap_hbar_to_fil', 'swap_hbar_to_akt'];
+const SWAP_TOOLS = ['swap_hbar_to_fil', 'swap_hbar_to_akt', 'swap_hbar_to_usdc'];
 const PROCUREMENT_TOOLS = [
   'procure_filecoin_storage',
   'procure_akash_compute',
@@ -23,6 +23,7 @@ export class PriceOracleHook extends AbstractHook {
   }
 
   tokenForTool(method) {
+    if (method.includes('usdc')) return 'USDC';
     if (method.includes('fil')) return 'FIL';
     if (method.includes('akt')) return 'AKT';
     if (method === 'procure_filecoin_storage') return 'FIL';

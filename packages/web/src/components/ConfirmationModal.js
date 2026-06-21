@@ -7,6 +7,7 @@ export function ConfirmationModal({ open, procurement, onConfirm, onCancel, load
 
   const cost = procurement.estimatedCostHBAR ?? procurement.maxCostHBAR;
   const needsSignature = cost > 300;
+  const needsConfirmation = cost > 100;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -14,6 +15,7 @@ export function ConfirmationModal({ open, procurement, onConfirm, onCancel, load
         <h2 className="text-lg font-semibold text-slate-900">Confirm Procurement</h2>
         <p className="mt-1 text-sm text-slate-500">
           Review details before the agent executes swap and purchase.
+          {needsConfirmation && ' Human approval required for purchases over 100 HBAR.'}
         </p>
 
         <div className="mt-4 space-y-2 rounded-lg bg-slate-50 p-4 text-sm">

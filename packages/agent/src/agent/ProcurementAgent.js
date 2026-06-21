@@ -177,9 +177,10 @@ export class ProcurementAgent {
       minReputation: this.policyEngine.reputationPolicy.minReputationScore,
     });
 
-    const selected = this.filecoinService.selectProvider(candidates, providerId);
+    const allowed = this.policyEngine.allowlistPolicy.filterProviders(candidates, 'providerId');
+    const selected = this.filecoinService.selectProvider(allowed, providerId);
     if (!selected) {
-      throw new Error('No suitable Filecoin provider available');
+      throw new Error('No suitable Filecoin provider available on the allowlist');
     }
 
     return this.filecoinService.createStorageDeal({
@@ -199,9 +200,10 @@ export class ProcurementAgent {
       minReputation: this.policyEngine.reputationPolicy.minReputationScore,
     });
 
-    const selected = this.akashService.selectProvider(candidates, providerId);
+    const allowed = this.policyEngine.allowlistPolicy.filterProviders(candidates, 'providerId');
+    const selected = this.akashService.selectProvider(allowed, providerId);
     if (!selected) {
-      throw new Error('No suitable Akash provider available');
+      throw new Error('No suitable Akash provider available on the allowlist');
     }
 
     return this.akashService.createDeployment({

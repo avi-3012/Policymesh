@@ -2,6 +2,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { ServiceTypePolicy } from '../src/policies/ServiceTypePolicy.js';
 import { ServiceProviderReputationPolicy } from '../src/policies/ServiceProviderReputationPolicy.js';
+import { AllowlistPolicy } from '../src/policies/AllowlistPolicy.js';
 import { ReputationService } from '../src/services/ReputationService.js';
 import { HcsService } from '../src/services/HcsService.js';
 
@@ -87,5 +88,44 @@ describe('ServiceProviderReputationPolicy', { concurrency: false }, () => {
     const result = policy.evaluateProvider('unknown-provider');
     assert.equal(result.passed, false);
     assert.match(result.reason, /not found/);
+  });
+});
+
+describe('AllowlistPolicy', { concurrency: false }, () => {
+  let policy;
+
+  beforeEach(() => {
+    policy = new AllowlistPolicy({
+      allowedProviders: ['f01234', 'akash-provider-1'],
+    });
+  });
+
+  it('allows whitelisted Filecoin miner', () => {
+    const result = policy.evaluateProvider('f01234');
+    assert.equal(result.passed, true);
+  });
+
+  it('blocks provider not on allowlist', () => {
+    const result = policy.evaluateProvider('f09999');
+    assert.equal(result.passed, false);
+    assert.match(result.reason, /not in the allowed counterparties list/);
+  });
+
+  it('filters provider candidates to allowlist only', () => {
+    const filtered = policy.filterProviders(
+      [{ providerId: 'f01234' }, { providerId: 'f09999' }],
+      'providerId',
+    );
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].providerId, 'f01234');
+  });
+
+  it('passes all providers when disabled', () => {
+    policy.updateConfig({ enabled: false });
+    const filtered = policy.filterProviders(
+      [{ providerId: 'f01234' }, { providerId: 'f09999' }],
+      'providerId',
+    );
+    assert.equal(filtered.length, 2);
   });
 });

@@ -21,6 +21,8 @@ import { createPoliciesRouter } from './routes/policies.js';
 import { createAuditRouter } from './routes/audit.js';
 import { createProvidersRouter } from './routes/providers.js';
 import { createProcureRouter } from './routes/procure.js';
+import { createConfirmationsRouter } from './routes/confirmations.js';
+import { createSwapRouter } from './routes/swap.js';
 import { createNotificationsRouter } from './routes/notifications.js';
 import { createAgentRouter } from './routes/agent.js';
 
@@ -135,6 +137,16 @@ export function createApp() {
       config,
     }),
   );
+  app.use(
+    '/api/confirmations',
+    createConfirmationsRouter({
+      procurementStore,
+      procurementAgent,
+      auditHook,
+      config,
+    }),
+  );
+  app.use('/api/swap', createSwapRouter({ saucerSwapService }));
 
   app.get('/', (req, res) => {
     const uiUrl = process.env.WEB_UI_URL || 'http://localhost:3000';

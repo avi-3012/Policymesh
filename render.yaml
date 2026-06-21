@@ -21,6 +21,8 @@ services:
         sync: false
       - key: HEDERA_PRIVATE_KEY
         sync: false
+      - key: HEDERA_RPC_URL
+        value: https://testnet.hashio.io/api
       - key: HCS_AUDIT_TOPIC_ID
         sync: false
       - key: OPENAI_API_KEY
@@ -35,7 +37,29 @@ services:
         value: https://console-api.akash.network
       - key: AKASH_API_KEY
         sync: false
+      - key: AKASH_NETWORK
+        value: mainnet
       - key: SAUCERSWAP_RPC_URL
         value: https://testnet.hashio.io/api
+      - key: SAUCERSWAP_ROUTER_ID
+        value: "0.0.19264"
+      - key: SAUCERSWAP_QUOTER_ID
+        value: "0.0.1390002"
+      - key: SAUCERSWAP_WHBAR_TOKEN_ID
+        value: "0.0.15058"
       - key: COINGECKO_API_KEY
+        sync: false
+      - key: USDC_TOKEN_ID
+        value: "0.0.429274"
+      - key: MAX_USDC_PER_PROCUREMENT
+        value: "100"
+      - key: CONFIRMATION_THRESHOLD
+        value: "100"
+      - key: APPROVER_SIGNATURE_THRESHOLD
+        value: "300"
+      - key: ALLOWLIST_ENABLED
+        value: true
+      - key: ALLOWED_PROVIDER_1
+        sync: false
+      - key: ALLOWED_PROVIDERS
         sync: false

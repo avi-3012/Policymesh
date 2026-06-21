@@ -90,6 +90,7 @@ describe('SaucerSwapApiClient', { concurrency: false }, () => {
         'hedera-hashgraph': { usd: 0.05 },
         filecoin: { usd: 5 },
         'akash-network': { usd: 2 },
+        'usd-coin': { usd: 1 },
       }),
     }));
 

@@ -5,78 +5,68 @@
 ## Repository
 
 - **GitHub:** _(add your public repo URL)_
-- **Live API:** _(add Render URL, e.g. `https://policymesh-agent.onrender.com`)_
+- **Live API:** _(add Render URL)_
 - **Live UI:** _(add Vercel URL)_
-- **HCS audit topic:** [HashScan testnet topic](https://hashscan.io/testnet/topic/0.0.9282597) _(update if different)_
+- **HCS audit topic:** [HashScan testnet](https://hashscan.io/testnet/topic/0.0.9282597)
 
 ## What judges should see
 
-1. **Policies** — Budget, Service Type, Provider Reputation, Delivery Verification (`GET /api/policies`)
-2. **Hooks** — HCS Audit, Price Oracle (CoinGecko + SaucerSwap), Notifications
-3. **Live integrations** — `GET /api/status` shows `servicesLiveMode: true` when deployed with Hedera credentials
-4. **Procurement** — Dashboard at `/procure` or `POST /api/procure/storage` / `POST /api/procure/compute`
-5. **LangChain agent** — `/agent` page or `POST /api/agent/chat`
-6. **Audit trail** — `/audit` page + on-chain HCS messages when not in demo mode
+1. **5 policies** — Budget (HBAR + USDC), Service Type, Allowlist, Reputation, Delivery Verification (`GET /api/policies`)
+2. **3 hooks** — HCS Audit, Price Oracle (CoinGecko), Notifications
+3. **Human confirmation** — purchases over 100 HBAR → `POST /api/confirmations/:id/approve`
+4. **Live integrations** — `GET /api/status` → `servicesLiveMode: true`
+5. **Procurement** — `/procure` UI or `POST /api/procure/storage` / `compute`
+6. **USDC quotes** — `GET /api/swap/quote?from=HBAR&to=USDC&amount=100`
+7. **LangChain agent** — `/agent` or `POST /api/agent/chat`
+8. **Audit trail** — `/audit` + HashScan HCS messages
 
 ## Pre-submission checklist
 
-- [ ] `npm test` — all unit tests pass
-- [ ] `npm run test:integration` — API integration tests pass
-- [ ] `npm run verify` — smoke test against running API
-- [ ] `DEMO_MODE=false` with Hedera testnet account + `HCS_AUDIT_TOPIC_ID`
-- [ ] `SERVICES_LIVE_MODE=true` (default when not in demo mode)
-- [ ] Deploy API to Render (`render.yaml`)
-- [ ] Deploy web to Vercel (`vercel.json`, set `NEXT_PUBLIC_API_URL`)
-- [ ] Record demo video (2–5 min): policies → procure → audit on HashScan → agent chat
-- [ ] Submit feedback issue to [hedera-agent-kit-js](https://github.com/hashgraph/hedera-agent-kit-js) using `docs/HEDERA_KIT_FEEDBACK.md`
+- [ ] `npm test` and `npm run test:integration` pass
+- [ ] `npm run verify` with API running
+- [ ] `DEMO_MODE=false`, Hedera + `HCS_AUDIT_TOPIC_ID` set
+- [ ] `SERVICES_LIVE_MODE=true`
+- [ ] Deploy API (Render) + web (Vercel)
+- [ ] Demo video: policies → procure → confirmation → HashScan audit
+- [ ] Hedera Agent Kit feedback issue (`docs/HEDERA_KIT_FEEDBACK.md`)
 
-## Environment variables (production)
-
-### Render (API) — `packages/agent`
+## Render env vars (API)
 
 | Variable | Required |
 |----------|----------|
-| `HEDERA_ACCOUNT_ID` | Yes (live) |
-| `HEDERA_PRIVATE_KEY` | Yes (live) |
-| `HCS_AUDIT_TOPIC_ID` | Yes (live audit) |
-| `DEMO_MODE` | `false` for bounty |
+| `HEDERA_ACCOUNT_ID` | Yes |
+| `HEDERA_PRIVATE_KEY` | Yes |
+| `HCS_AUDIT_TOPIC_ID` | Yes |
+| `DEMO_MODE` | `false` |
 | `SERVICES_LIVE_MODE` | `true` |
-| `OPENAI_API_KEY` | For agent chat |
-| `WEB_UI_URL` | Vercel dashboard URL |
-| `FILECOIN_API_KEY` | Optional |
-| `AKASH_API_KEY` | Optional |
-| `COINGECKO_API_KEY` | Optional (rate limits) |
+| `OPENAI_API_KEY` | For agent |
+| `WEB_UI_URL` | Vercel URL |
+| `CONFIRMATION_THRESHOLD` | `100` (default) |
+| `USDC_TOKEN_ID` | `0.0.429274` |
+| `ALLOWLIST_ENABLED` | `true` |
+| `FILECOIN_API_KEY`, `AKASH_API_KEY`, `COINGECKO_API_KEY` | Optional |
 
-### Vercel (web) — `packages/web`
+## Vercel env vars (web)
 
 | Variable | Required |
 |----------|----------|
 | `NEXT_PUBLIC_API_URL` | Render API base URL |
 
-## Architecture summary
+## Implementation honesty (see README)
 
-```
-User → Next.js UI → Express API → Policy Engine
-                              → Filecoin (Glif Calibration RPC)
-                              → Akash (Console API)
-                              → SaucerSwap / CoinGecko (rates)
-                              → HCS Audit Topic
-                              → LangChain + Hedera Agent Kit
-```
-
-## Notes for reviewers
-
-- **Filecoin deals** and **Akash deployments** use live provider discovery; deal sealing and lease creation are tracked locally (full on-chain deals require Lotus wallet / Akash cert deployment).
-- **SaucerSwap swaps** return live market quotes; on-chain swap execution requires WHBAR and token association on the operator account.
-- **Demo mode** (`DEMO_MODE=true`) disables Hedera and all live external APIs — useful for CI and offline development.
+| Live today | Simulated / pending |
+|------------|---------------------|
+| Policies, HCS audit, CoinGecko rates | On-chain HBAR transfers |
+| Filecoin/Akash provider APIs | Full Filecoin deals / Akash leases on-chain |
+| HBAR→FIL/AKT/USDC **quotes** | SaucerSwap / HTS **execution** |
 
 ## Commands
 
 ```bash
 npm install
-npm run setup:hcs          # one-time HCS topic
-npm run agent:dev          # API :3001
-npm run web                # UI :3000
+npm run setup:hcs
+npm run agent:dev
+npm run web
 npm test
 npm run test:integration
 npm run verify

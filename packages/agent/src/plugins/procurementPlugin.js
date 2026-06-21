@@ -3,6 +3,7 @@ import {
   ProcureAkashComputeTool,
   SwapHbarToFilTool,
   SwapHbarToAktTool,
+  SwapHbarToUsdcTool,
 } from '../tools/ProcurementTools.js';
 
 export const procurementPlugin = {
@@ -14,6 +15,7 @@ export const procurementPlugin = {
     new ProcureAkashComputeTool(),
     new SwapHbarToFilTool(),
     new SwapHbarToAktTool(),
+    new SwapHbarToUsdcTool(),
   ],
 };
 
@@ -22,4 +24,5 @@ export const procurementToolMethods = [
   'procure_akash_compute',
   'swap_hbar_to_fil',
   'swap_hbar_to_akt',
+  'swap_hbar_to_usdc',
 ];

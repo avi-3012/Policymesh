@@ -193,11 +193,22 @@ export default function ProcurePage() {
                 ))}
               </div>
               {result.status === 'awaiting_confirmation' ? (
-                <div className="rounded-lg bg-success/10 p-4 text-sm text-emerald-800">
-                  All policies passed. Confirm from the dashboard to execute procurement.
+                <div className="rounded-lg bg-accent/10 p-4 text-sm text-amber-900">
+                  Policies passed. This purchase exceeds {result.threshold ?? 100} HBAR and requires human
+                  approval from the dashboard.
+                  {result.message && <p className="mt-2 text-xs">{result.message}</p>}
                   {result.recommendedProvider && (
                     <p className="mt-2 font-mono text-xs">
                       Recommended provider: {result.recommendedProvider.id}
+                    </p>
+                  )}
+                </div>
+              ) : result.status === 'completed' || result.autoExecuted ? (
+                <div className="rounded-lg bg-success/10 p-4 text-sm text-emerald-800">
+                  Procurement executed automatically (under confirmation threshold).
+                  {result.transactionDetails?.delivery?.pieceCid && (
+                    <p className="mt-2 font-mono text-xs break-all">
+                      CID: {result.transactionDetails.delivery.pieceCid}
                     </p>
                   )}
                 </div>

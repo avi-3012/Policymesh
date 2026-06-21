@@ -1,55 +1,80 @@
-# PolicyMesh credentials checklist
+# PolicyMesh credentials & environment reference
 
-Paste your values into **`packages/agent/.env`**. This file is gitignored — never commit it.
+Paste values into **`packages/agent/.env`** (gitignored). Template: **`packages/agent/.env.example`**.
 
-## DEMO_MODE: `true` vs `false`
-
-| | `DEMO_MODE=true` | `DEMO_MODE=false` |
-|---|------------------|-------------------|
-| **When** | No Hedera account, or offline dev | Hedera testnet account + keys configured |
-| **Hedera client** | Disabled (`null`) | Connects to testnet |
-| **HCS audit** | In-memory cache only | Writes to `HCS_AUDIT_TOPIC_ID` on chain |
-| **Filecoin / Akash / SaucerSwap** | Simulated | Live APIs when `SERVICES_LIVE_MODE=true` (default) |
-| **Policies** | Fully enforced | Fully enforced |
-| **OpenAI agent** | Works if `OPENAI_API_KEY` set | Works if `OPENAI_API_KEY` set |
-
-**Rule of thumb:** set `DEMO_MODE=false` when you have `HEDERA_ACCOUNT_ID`, `HEDERA_PRIVATE_KEY`, and `HCS_AUDIT_TOPIC_ID` filled in.
-
-Auto-fallback: if `DEMO_MODE` is unset but `HEDERA_ACCOUNT_ID` is missing, the app still runs in demo mode.
+Web dashboard: **`packages/web/.env.local`** with `NEXT_PUBLIC_API_URL=http://localhost:3001`.
 
 ---
 
-## Required for live Hedera (bounty demo)
+## Quick start
 
-| Variable | How to get |
-|----------|------------|
-| `HEDERA_ACCOUNT_ID` | [Hedera Portal](https://portal.hedera.com) testnet account |
-| `HEDERA_PRIVATE_KEY` | Export when creating account (ECDSA `0x...` or DER) |
-| `HCS_AUDIT_TOPIC_ID` | Run `npm run setup:hcs` (creates topic + updates `.env`) |
+```bash
+cp packages/agent/.env.example packages/agent/.env   # then edit
+cp packages/web/.env.example packages/web/.env.local
+npm run setup:hcs    # creates HCS topic, updates .env
+npm run agent:dev    # API :3001
+npm run web          # UI :3000
+npm run verify       # smoke test
+```
 
-## Required for AI agent chat
+---
 
-| Variable | How to get |
-|----------|------------|
-| `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+## DEMO_MODE vs live
 
-## Filecoin, Akash, SaucerSwap
+| | `DEMO_MODE=true` | `DEMO_MODE=false` |
+|---|------------------|-------------------|
+| Hedera client | Off | Testnet |
+| HCS audit | In-memory | On-chain topic |
+| Filecoin / Akash / rates | Simulated | Live when `SERVICES_LIVE_MODE=true` |
+| Policies | Enforced | Enforced |
 
-| Service | API / RPC | Key required? |
-|---------|-----------|---------------|
-| **Filecoin** | Glif Calibration RPC (`FILECOIN_RPC_URL`) | Optional `FILECOIN_API_KEY` for premium RPC |
-| **Akash** | [Console API](https://console-api.akash.network) provider list | Optional `AKASH_API_KEY` for JWT deployment endpoints |
-| **SaucerSwap** | CoinGecko rates + Hedera testnet router via `SAUCERSWAP_RPC_URL` | Optional `COINGECKO_API_KEY`, `SAUCERSWAP_API_KEY` (reserved) |
+Set `DEMO_MODE=false` when `HEDERA_ACCOUNT_ID`, `HEDERA_PRIVATE_KEY`, and `HCS_AUDIT_TOPIC_ID` are set.
 
-Set `SERVICES_LIVE_MODE=false` to force simulation even with Hedera credentials.
+---
 
-**Live mode behavior:**
+## Required variables
 
-- **Filecoin** — queries real Calibration miners via Glif RPC; deals tracked locally with chain height
-- **Akash** — fetches live providers from Console API
-- **SaucerSwap** — live HBAR→FIL/AKT rates from CoinGecko; on-chain swap execution needs token association
+| Variable | Purpose | How to get |
+|----------|---------|------------|
+| `HEDERA_ACCOUNT_ID` | Testnet operator | [portal.hedera.com](https://portal.hedera.com) |
+| `HEDERA_PRIVATE_KEY` | Signs HCS messages | Export at account creation (ECDSA `0x...`) |
+| `HCS_AUDIT_TOPIC_ID` | Immutable audit log | `npm run setup:hcs` |
+| `OPENAI_API_KEY` | Agent chat (optional) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 
-Check integration status: `GET /api/status` → `servicesLiveMode` and `integrations`.
+---
+
+## Live integrations (optional keys)
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `SERVICES_LIVE_MODE` | `true` | Set `false` to simulate Filecoin/Akash/rates |
+| `FILECOIN_RPC_URL` | Glif Calibration | Optional `FILECOIN_API_KEY` |
+| `AKASH_CONSOLE_API_URL` | `https://console-api.akash.network` | Use `/v1/providers` path; base URL 404 is normal |
+| `AKASH_API_KEY` | empty | Public provider list needs no key |
+| `COINGECKO_API_KEY` | empty | Optional rate-limit boost |
+| `SAUCERSWAP_RPC_URL` | Hashio testnet | Router/quoter IDs preconfigured |
+
+---
+
+## Policy & procurement variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `MAX_PER_PROCUREMENT` | 500 | HBAR cap per order |
+| `MAX_DAILY_SPEND` | 2000 | HBAR daily budget |
+| `MAX_MONTHLY_SPEND` | 20000 | HBAR rolling 30-day budget |
+| `MIN_PROCUREMENT_AMOUNT` | 10 | Minimum HBAR order |
+| `USDC_TOKEN_ID` | `0.0.429274` | Hedera testnet USDC |
+| `MAX_USDC_PER_PROCUREMENT` | 100 | USDC cap per order |
+| `MIN_USDC_PER_PROCUREMENT` | 1 | Minimum USDC order |
+| `ALLOWLIST_ENABLED` | `true` | Provider whitelist on/off |
+| `ALLOWED_PROVIDER_1/2/3` | empty | Extra allowed providers |
+| `ALLOWED_PROVIDERS` | empty | Comma-separated provider IDs |
+| `CONFIRMATION_THRESHOLD` | 100 | Above this → human approval required |
+| `APPROVER_SIGNATURE_THRESHOLD` | 300 | High-value signature on approve |
+| `MIN_REPUTATION_SCORE` | 0.75 | Provider reputation floor |
+
+Default seed allowlist: `f01234`, `f05678`, `akash-provider-1`, `akash-gpu-1`.
 
 ---
 
@@ -58,15 +83,18 @@ Check integration status: `GET /api/status` → `servicesLiveMode` and `integrat
 | Variable | Where |
 |----------|-------|
 | `NEXT_PUBLIC_API_URL` | `packages/web/.env.local` → Render API URL |
-| `WEB_UI_URL` | `packages/agent/.env` → Vercel dashboard URL |
+| `WEB_UI_URL` | `packages/agent/.env` → Vercel URL |
 
-See [SUBMISSION.md](./SUBMISSION.md) for full deploy checklist.
+See [SUBMISSION.md](./SUBMISSION.md) and [render.yaml](./render.yaml).
 
-## Commands
+---
+
+## Verify
 
 ```bash
-npm run setup:hcs    # Create HCS topic (once)
-npm run agent:dev    # API :3001
-npm run web          # UI :3000
-npm run verify       # Health + procurement smoke test
+curl http://localhost:3001/api/status | jq '.servicesLiveMode, .integrations'
+curl http://localhost:3001/api/policies | jq 'keys'
+curl "http://localhost:3001/api/swap/quote?from=HBAR&to=USDC&amount=100"
 ```
+
+HashScan audit topic: `https://hashscan.io/testnet/topic/<HCS_AUDIT_TOPIC_ID>`

@@ -42,12 +42,28 @@ results.push(
 );
 
 results.push(
-  await check('Policies loaded', async () => {
+  await check('All five policies loaded', async () => {
     const res = await fetch(`${API}/api/policies`);
     const data = await res.json();
-    if (!data.BudgetPolicy || !data.DeliveryVerificationPolicy) {
-      throw new Error('missing policies');
+    const required = [
+      'BudgetPolicy',
+      'ServiceTypePolicy',
+      'AllowlistPolicy',
+      'ServiceProviderReputationPolicy',
+      'DeliveryVerificationPolicy',
+    ];
+    for (const p of required) {
+      if (!data[p]) throw new Error(`missing ${p}`);
     }
+  }),
+);
+
+results.push(
+  await check('USDC swap quote', async () => {
+    const res = await fetch(`${API}/api/swap/quote?from=HBAR&to=USDC&amount=10`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.to !== 'USDC' || !data.tokenId) throw new Error('invalid USDC quote');
   }),
 );
 
@@ -94,7 +110,9 @@ const liveServices = process.env.SERVICES_LIVE_MODE !== 'false' && !demoMode;
 console.log('\nMode:', demoMode ? 'DEMO' : `HEDERA ${process.env.HEDERA_NETWORK || 'testnet'}`);
 console.log('Live APIs:', liveServices ? 'enabled' : 'simulated');
 console.log('OpenAI:', process.env.OPENAI_API_KEY ? 'configured' : 'not set');
-console.log('HCS topic:', process.env.HCS_AUDIT_TOPIC_ID || 'not set');
+console.log('USDC token:', process.env.USDC_TOKEN_ID || '0.0.429274 (default)');
+console.log('Confirmation threshold:', process.env.CONFIRMATION_THRESHOLD || '100', 'HBAR');
+console.log('Allowlist:', process.env.ALLOWLIST_ENABLED !== 'false' ? 'enabled' : 'disabled');
 
 const passed = results.filter(Boolean).length;
 const total = results.length;

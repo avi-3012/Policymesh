@@ -5,6 +5,7 @@ const PROCUREMENT_TOOLS = [
   'procure_akash_compute',
   'swap_hbar_to_fil',
   'swap_hbar_to_akt',
+  'swap_hbar_to_usdc',
 ];
 
 const SERVICE_METADATA = {

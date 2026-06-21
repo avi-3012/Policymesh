@@ -48,7 +48,7 @@ export default function PoliciesPage() {
         <div className="mt-6 space-y-6">
           <PolicySection
             title="Budget Policy"
-            description="Enforces per-procurement, daily, and monthly HBAR spending limits"
+            description="HBAR daily/monthly limits and USDC per-procurement caps"
           >
             {['maxPerProcurement', 'maxDailySpend', 'maxMonthlySpend', 'minProcurementAmount'].map((key) => (
               <Field
@@ -58,6 +58,14 @@ export default function PoliciesPage() {
                 onChange={(v) => updatePolicy('BudgetPolicy', key, v)}
               />
             ))}
+            <Field
+              label="Max USDC per procurement"
+              value={current.BudgetPolicy.maxUSDCPerProcurement}
+              onChange={(v) => updatePolicy('BudgetPolicy', 'maxUSDCPerProcurement', v)}
+            />
+            <p className="text-xs text-slate-400">
+              USDC token: {current.BudgetPolicy.usdcTokenId ?? '0.0.429274'} (set USDC_TOKEN_ID in .env)
+            </p>
           </PolicySection>
 
           <PolicySection
@@ -104,6 +112,23 @@ export default function PoliciesPage() {
                 })
               }
             />
+          </PolicySection>
+
+          <PolicySection
+            title="Allowlist Policy"
+            description="Only approved Filecoin miners and Akash providers may receive procurement"
+          >
+            <div className="mb-3">
+              <p className="text-sm text-slate-500 mb-2">Allowed counterparties</p>
+              <div className="flex flex-wrap gap-2">
+                {current.AllowlistPolicy?.allowedProviders?.map((p) => (
+                  <span key={p} className="badge bg-primary/10 text-primary">{p}</span>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-slate-400">
+              Add providers via ALLOWED_PROVIDER_1 or ALLOWED_PROVIDERS in packages/agent/.env
+            </p>
           </PolicySection>
 
           <PolicySection

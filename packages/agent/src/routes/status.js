@@ -47,6 +47,7 @@ export function createStatusRouter({
         saucerswap: {
           live: config?.services?.liveEnabled ?? false,
           router: config?.services?.saucerswap?.routerId ?? null,
+          usdcTokenId: config?.budget?.usdcTokenId ?? '0.0.429274',
           priceOracle: 'coingecko',
         },
         hcs: {

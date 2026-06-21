@@ -89,4 +89,33 @@ describe('BudgetPolicy', { concurrency: false }, () => {
     );
     assert.equal(blocked, false);
   });
+
+  it('allows USDC procurement within limit', () => {
+    const usdcPolicy = new BudgetPolicy(
+      { maxUSDCPerProcurement: 100, usdcTokenId: '0.0.429274' },
+      spendTracker,
+    );
+    const result = usdcPolicy.checkProcurement(50, 'USDC');
+    assert.equal(result.passed, true);
+    assert.equal(result.paymentToken, 'USDC');
+  });
+
+  it('blocks USDC procurement over limit', () => {
+    const usdcPolicy = new BudgetPolicy(
+      { maxUSDCPerProcurement: 100, usdcTokenId: '0.0.429274' },
+      spendTracker,
+    );
+    const result = usdcPolicy.checkProcurement(150, 'USDC');
+    assert.equal(result.passed, false);
+    assert.match(result.reason, /USDC amount 150 exceeds max 100/);
+  });
+
+  it('accepts USDC token id as payment token', () => {
+    const usdcPolicy = new BudgetPolicy(
+      { maxUSDCPerProcurement: 100, usdcTokenId: '0.0.429274' },
+      spendTracker,
+    );
+    const result = usdcPolicy.checkProcurement(25, '0.0.429274');
+    assert.equal(result.passed, true);
+  });
 });

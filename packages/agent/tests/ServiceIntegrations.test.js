@@ -29,6 +29,16 @@ describe('SaucerSwapService', { concurrency: false }, () => {
     assert.equal(quote.inputHBAR, 100);
     assert.ok(quote.minOutputAmount < quote.outputAmount);
   });
+
+  it('returns HBAR to USDC swap quote', async () => {
+    const service = new SaucerSwapService({ demoMode: true });
+    const quote = await service.getSwapQuote('HBAR', 'USDC', 100);
+    assert.equal(quote.from, 'HBAR');
+    assert.equal(quote.to, 'USDC');
+    assert.equal(quote.tokenId, '0.0.429274');
+    assert.ok(quote.outputAmount > 0);
+    assert.match(quote.route, /HBAR→USDC/);
+  });
 });
 
 describe('DeliveryVerificationPolicy', { concurrency: false }, () => {

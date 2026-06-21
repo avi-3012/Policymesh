@@ -10,6 +10,7 @@ const statusColors = {
   executing: 'bg-secondary/15 text-teal-700',
   policy_rejected: 'bg-error/15 text-rose-700',
   failed: 'bg-error/15 text-rose-700',
+  rejected: 'bg-slate-200 text-slate-600',
   confirmed: 'bg-primary/15 text-blue-700',
 };
 
@@ -27,7 +28,7 @@ function stageIndex(status) {
   return map[status] ?? 0;
 }
 
-export function ProcurementCard({ procurement, onConfirm }) {
+export function ProcurementCard({ procurement, onConfirm, onReject }) {
   const [expanded, setExpanded] = useState(false);
   const isStorage = procurement.serviceType === 'filecoin-storage';
   const progress = (stageIndex(procurement.status) / (stages.length - 1)) * 100;
@@ -68,10 +69,19 @@ export function ProcurementCard({ procurement, onConfirm }) {
           {procurement.id?.slice(0, 8)}…
         </p>
         <div className="flex gap-2">
-          {procurement.status === 'awaiting_confirmation' && onConfirm && (
-            <button type="button" onClick={() => onConfirm(procurement)} className="btn-primary text-xs">
-              Confirm
-            </button>
+          {procurement.status === 'awaiting_confirmation' && (
+            <>
+              {onConfirm && (
+                <button type="button" onClick={() => onConfirm(procurement)} className="btn-primary text-xs">
+                  Approve
+                </button>
+              )}
+              {onReject && (
+                <button type="button" onClick={() => onReject(procurement)} className="btn-secondary text-xs">
+                  Reject
+                </button>
+              )}
+            </>
           )}
           <button
             type="button"

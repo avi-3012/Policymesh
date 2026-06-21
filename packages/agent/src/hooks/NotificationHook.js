@@ -5,6 +5,7 @@ const DEFAULT_TOOLS = [
   'procure_akash_compute',
   'swap_hbar_to_fil',
   'swap_hbar_to_akt',
+  'swap_hbar_to_usdc',
 ];
 
 /**

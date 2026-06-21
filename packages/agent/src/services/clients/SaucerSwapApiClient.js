@@ -10,6 +10,7 @@ export class SaucerSwapApiClient {
     routerId = '0.0.19264',
     quoterId = '0.0.1390002',
     whbarTokenId = '0.0.15058',
+    usdcTokenId = '0.0.429274',
     coingeckoUrl = 'https://api.coingecko.com/api/v3',
     coingeckoApiKey = null,
     apiKey = null,
@@ -18,6 +19,7 @@ export class SaucerSwapApiClient {
     this.routerId = routerId;
     this.quoterId = quoterId;
     this.whbarTokenId = whbarTokenId;
+    this.usdcTokenId = usdcTokenId;
     this.coingeckoUrl = coingeckoUrl.replace(/\/$/, '');
     this.coingeckoApiKey = coingeckoApiKey;
     this.apiKey = apiKey;
@@ -27,12 +29,13 @@ export class SaucerSwapApiClient {
     const headers = {};
     if (this.coingeckoApiKey) headers['x-cg-demo-api-key'] = this.coingeckoApiKey;
 
-    const url = `${this.coingeckoUrl}/simple/price?ids=hedera-hashgraph,filecoin,akash-network&vs_currencies=usd`;
+    const url = `${this.coingeckoUrl}/simple/price?ids=hedera-hashgraph,filecoin,akash-network,usd-coin&vs_currencies=usd`;
     const data = await fetchJson(url, { headers });
 
     const hbarUsd = data['hedera-hashgraph']?.usd;
     const filUsd = data.filecoin?.usd;
     const aktUsd = data['akash-network']?.usd;
+    const usdcUsd = data['usd-coin']?.usd ?? 1;
 
     if (!hbarUsd || !filUsd || !aktUsd) {
       throw new Error('Incomplete CoinGecko price data');
@@ -42,8 +45,20 @@ export class SaucerSwapApiClient {
       hbarUsd,
       filUsd,
       aktUsd,
+      usdcUsd,
       hbarPerFil: filUsd / hbarUsd,
       hbarPerAkt: aktUsd / hbarUsd,
+      usdcPerHbar: hbarUsd / usdcUsd,
+      source: 'coingecko',
+    };
+  }
+
+  async getHbarToUsdcRate() {
+    const gecko = await this.getCoinGeckoRates();
+    return {
+      usdcPerHbar: gecko.usdcPerHbar,
+      hbarPerUsdc: 1 / gecko.usdcPerHbar,
+      tokenId: this.usdcTokenId,
       source: 'coingecko',
     };
   }

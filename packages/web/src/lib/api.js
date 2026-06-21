@@ -43,6 +43,19 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+  approveProcurement: (id, body = {}) =>
+    request(`/api/confirmations/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  rejectProcurement: (id, body = {}) =>
+    request(`/api/confirmations/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  getConfirmation: (id) => request(`/api/confirmations/${id}`),
+  getSwapQuote: (from, to, amount) =>
+    request(`/api/swap/quote?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${amount}`),
   getNotifications: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/api/notifications${q ? `?${q}` : ''}`);

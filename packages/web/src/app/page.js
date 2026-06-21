@@ -41,8 +41,9 @@ export default function DashboardPage() {
     setConfirmLoading(true);
     try {
       const cost = confirmTarget.estimatedCostHBAR ?? confirmTarget.maxCostHBAR;
-      await api.confirmProcurement(confirmTarget.id, {
+      await api.approveProcurement(confirmTarget.id, {
         approverSignature: cost > 300 ? 'admin-confirmed' : undefined,
+        approvedBy: 'human',
       });
       queryClient.invalidateQueries({ queryKey: ['procurements'] });
       queryClient.invalidateQueries({ queryKey: ['audit'] });
@@ -52,6 +53,17 @@ export default function DashboardPage() {
       alert(err.message);
     } finally {
       setConfirmLoading(false);
+    }
+  }
+
+  async function handleReject(procurement) {
+    if (!confirm('Reject this procurement request?')) return;
+    try {
+      await api.rejectProcurement(procurement.id, { rejectedBy: 'human' });
+      queryClient.invalidateQueries({ queryKey: ['procurements'] });
+      queryClient.invalidateQueries({ queryKey: ['audit'] });
+    } catch (err) {
+      alert(err.message);
     }
   }
 
@@ -94,7 +106,7 @@ export default function DashboardPage() {
             <Shield className="h-8 w-8 text-primary" />
             <div>
               <p className="text-sm text-slate-500">Active policies</p>
-              <p className="text-xl font-semibold">{policies ? Object.keys(policies).length : 4}</p>
+              <p className="text-xl font-semibold">{policies ? Object.keys(policies).length : 5}</p>
             </div>
           </div>
           <div className="card">
@@ -114,7 +126,12 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {procurements.items.map((p) => (
-                    <ProcurementCard key={p.id} procurement={p} onConfirm={handleConfirm} />
+                    <ProcurementCard
+                      key={p.id}
+                      procurement={p}
+                      onConfirm={handleConfirm}
+                      onReject={handleReject}
+                    />
                   ))}
                 </div>
               )}
@@ -141,7 +158,7 @@ export default function DashboardPage() {
             <div className="card">
               <h2 className="mb-4 font-semibold">Policy Status</h2>
               <div className="flex flex-wrap justify-center gap-4">
-                {['BudgetPolicy', 'ServiceTypePolicy', 'ServiceProviderReputationPolicy', 'DeliveryVerificationPolicy'].map(
+                {['BudgetPolicy', 'ServiceTypePolicy', 'AllowlistPolicy', 'ServiceProviderReputationPolicy', 'DeliveryVerificationPolicy'].map(
                   (name) => (
                     <div key={name} className="text-center">
                       <PolicyStatusIndicator name={name} passed={true} />

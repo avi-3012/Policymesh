@@ -282,3 +282,50 @@ export class SwapHbarToAktTool extends BaseTool {
     };
   }
 }
+
+export class SwapHbarToUsdcTool extends BaseTool {
+  method = 'swap_hbar_to_usdc';
+  name = 'Swap HBAR to USDC';
+  description = 'Swap HBAR to USDC (HTS) via SaucerSwap oracle for stablecoin procurement.';
+  parameters = z.object({
+    amountHBAR: z.number().min(1),
+    procurementId: z.string().optional(),
+  });
+
+  async normalizeParams(params) {
+    return {
+      amountHBAR: Number(params.amountHBAR),
+      procurementId: params.procurementId,
+      estimatedCostHBAR: Number(params.amountHBAR),
+      maxCostHBAR: Number(params.amountHBAR),
+    };
+  }
+
+  async coreAction(normalisedParams, context) {
+    const { saucerSwapService, priceOracleHook } = getServices(context);
+    const rate = await priceOracleHook.getRate('USDC');
+    const quote = await saucerSwapService.getSwapQuote(
+      'HBAR',
+      'USDC',
+      normalisedParams.amountHBAR,
+    );
+    const swap = await saucerSwapService.swapHBARToToken(normalisedParams.amountHBAR, 'USDC');
+    return { swap, quote, rate, procurementId: normalisedParams.procurementId };
+  }
+
+  async secondaryAction() {
+    return null;
+  }
+
+  async shouldSecondaryAction() {
+    return false;
+  }
+
+  outputParser(rawOutput) {
+    const data = typeof rawOutput === 'string' ? JSON.parse(rawOutput) : rawOutput;
+    return {
+      raw: data,
+      humanMessage: `Swapped ${data.swap.inputHBAR} HBAR → ${data.swap.outputAmount.toFixed(4)} USDC (tx: ${data.swap.transactionHash})`,
+    };
+  }
+}

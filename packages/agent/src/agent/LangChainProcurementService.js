@@ -12,6 +12,7 @@ const SYSTEM_PROMPT = `You are PolicyMesh, an autonomous Hedera procurement offi
 You help users procure Filecoin storage and Akash compute using HBAR. All actions pass through policy hooks:
 - BudgetPolicy: spending limits
 - ServiceTypePolicy: allowed services
+- AllowlistPolicy: approved provider counterparties only
 - ServiceProviderReputationPolicy: provider quality
 - DeliveryVerificationPolicy: delivery confirmation
 
@@ -50,6 +51,7 @@ export class LangChainProcurementService {
     const hooks = [
       this.policyEngine.budgetPolicy,
       this.policyEngine.serviceTypePolicy,
+      this.policyEngine.allowlistPolicy,
       this.policyEngine.reputationPolicy,
       this.policyEngine.deliveryVerificationPolicy,
       this.auditHook,
@@ -64,7 +66,7 @@ export class LangChainProcurementService {
     ) {
       hooks.push(
         new HcsAuditTrailHook(
-          ['procure_filecoin_storage', 'procure_akash_compute', 'swap_hbar_to_fil', 'swap_hbar_to_akt'],
+          ['procure_filecoin_storage', 'procure_akash_compute', 'swap_hbar_to_fil', 'swap_hbar_to_akt', 'swap_hbar_to_usdc'],
           this.config.hedera.hcsAuditTopicId,
           this.hederaClient,
         ),
