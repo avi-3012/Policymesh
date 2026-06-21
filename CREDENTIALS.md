@@ -80,10 +80,10 @@ Default seed allowlist: `f01234`, `f05678`, `akash-provider-1`, `akash-gpu-1`.
 
 ## Production deployment
 
-| Variable | Where |
+| Variable | Value |
 |----------|-------|
-| `NEXT_PUBLIC_API_URL` | `packages/web/.env.local` → Render API URL |
-| `WEB_UI_URL` | `packages/agent/.env` → Vercel URL |
+| `NEXT_PUBLIC_API_URL` | https://policymesh.onrender.com |
+| `WEB_UI_URL` | https://policymesh-blond.vercel.app |
 
 See [SUBMISSION.md](./SUBMISSION.md) and [render.yaml](./render.yaml).
 

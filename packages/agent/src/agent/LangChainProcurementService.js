@@ -16,6 +16,7 @@ You help users procure Filecoin storage and Akash compute using HBAR. All action
 - ServiceProviderReputationPolicy: provider quality
 - DeliveryVerificationPolicy: delivery confirmation
 
+Use list_infrastructure_providers when asked about available providers or budgets.
 Use procurement tools to create requests. Explain policy results clearly. For GPU compute, note human approval may be required.
 Never exceed user-specified budgets. Recommend high-reputation providers when asked.`;
 
@@ -66,7 +67,14 @@ export class LangChainProcurementService {
     ) {
       hooks.push(
         new HcsAuditTrailHook(
-          ['procure_filecoin_storage', 'procure_akash_compute', 'swap_hbar_to_fil', 'swap_hbar_to_akt', 'swap_hbar_to_usdc'],
+          [
+            'list_infrastructure_providers',
+            'procure_filecoin_storage',
+            'procure_akash_compute',
+            'swap_hbar_to_fil',
+            'swap_hbar_to_akt',
+            'swap_hbar_to_usdc',
+          ],
           this.config.hedera.hcsAuditTopicId,
           this.hederaClient,
         ),

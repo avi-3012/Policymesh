@@ -4,10 +4,10 @@
 
 ## Repository
 
-- **GitHub:** _(add your public repo URL)_
-- **Live API:** _(add Render URL)_
-- **Live UI:** _(add Vercel URL)_
-- **HCS audit topic:** [HashScan testnet](https://hashscan.io/testnet/topic/0.0.9282597)
+- **GitHub:** https://github.com/avi-3012/Policymesh
+- **Live API:** https://policymesh.onrender.com
+- **Live UI:** https://policymesh-blond.vercel.app
+- **HCS audit topic:** https://hashscan.io/testnet/topic/0.0.9282597
 
 ## What judges should see
 
@@ -20,15 +20,23 @@
 7. **LangChain agent** — `/agent` or `POST /api/agent/chat`
 8. **Audit trail** — `/audit` + HashScan HCS messages
 
+Full judge walkthrough: [README.md — Live demo](./README.md#live-demo--for-judges)
+
 ## Pre-submission checklist
 
-- [ ] `npm test` and `npm run test:integration` pass
-- [ ] `npm run verify` with API running
-- [ ] `DEMO_MODE=false`, Hedera + `HCS_AUDIT_TOPIC_ID` set
-- [ ] `SERVICES_LIVE_MODE=true`
-- [ ] Deploy API (Render) + web (Vercel)
+- [x] `npm test` passes (38 unit tests)
+- [ ] `npm run test:integration` pass (slow; Hedera HCS calls)
+- [x] `npm run verify` against live API (`API_URL=https://policymesh.onrender.com`)
+- [x] `DEMO_MODE=false`, Hedera + `HCS_AUDIT_TOPIC_ID` set on Render
+- [x] `SERVICES_LIVE_MODE=true`
+- [x] Deploy API (Render) + web (Vercel)
+- [x] `WEB_UI_URL` → https://policymesh-blond.vercel.app
+- [x] `NEXT_PUBLIC_API_URL` → https://policymesh.onrender.com
+- [ ] **OpenAI billing** — agent chat returned 429 quota on production (fix before demo video)
 - [ ] Demo video: policies → procure → confirmation → HashScan audit
-- [ ] Hedera Agent Kit feedback issue (`docs/HEDERA_KIT_FEEDBACK.md`)
+- [ ] Hedera Agent Kit feedback issue filed (`docs/HEDERA_KIT_FEEDBACK.md`)
+- [ ] Push latest README + keep-alive workflow to `main`
+- [ ] Submit on bounty portal
 
 ## Render env vars (API)
 
@@ -36,11 +44,11 @@
 |----------|----------|
 | `HEDERA_ACCOUNT_ID` | Yes |
 | `HEDERA_PRIVATE_KEY` | Yes |
-| `HCS_AUDIT_TOPIC_ID` | Yes |
+| `HCS_AUDIT_TOPIC_ID` | Yes (`0.0.9282597`) |
 | `DEMO_MODE` | `false` |
 | `SERVICES_LIVE_MODE` | `true` |
-| `OPENAI_API_KEY` | For agent |
-| `WEB_UI_URL` | Vercel URL |
+| `OPENAI_API_KEY` | For agent (needs active billing) |
+| `WEB_UI_URL` | https://policymesh-blond.vercel.app |
 | `CONFIRMATION_THRESHOLD` | `100` (default) |
 | `USDC_TOKEN_ID` | `0.0.429274` |
 | `ALLOWLIST_ENABLED` | `true` |
@@ -50,7 +58,7 @@
 
 | Variable | Required |
 |----------|----------|
-| `NEXT_PUBLIC_API_URL` | Render API base URL |
+| `NEXT_PUBLIC_API_URL` | https://policymesh.onrender.com |
 
 ## Implementation honesty (see README)
 
@@ -69,5 +77,5 @@ npm run agent:dev
 npm run web
 npm test
 npm run test:integration
-npm run verify
+API_URL=https://policymesh.onrender.com npm run verify
 ```

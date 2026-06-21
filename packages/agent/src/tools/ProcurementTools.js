@@ -3,11 +3,87 @@ import { BaseTool } from '@hashgraph/hedera-agent-kit';
 import { v4 as uuidv4 } from 'uuid';
 
 function getServices(context) {
-  return context.polymesh;
+  const services = context?.policymesh;
+  if (!services) {
+    throw new Error(
+      'PolicyMesh agent context missing (expected context.policymesh). Restart the API after deploy.',
+    );
+  }
+  return services;
 }
 
 function policySummary(checks) {
   return checks.map((c) => `${c.policy}: ${c.passed ? 'PASS' : 'BLOCK'}${c.reason ? ` (${c.reason})` : ''}`).join('; ');
+}
+
+export class ListInfrastructureProvidersTool extends BaseTool {
+  method = 'list_infrastructure_providers';
+  name = 'List Infrastructure Providers';
+  description =
+    'List Filecoin storage and Akash compute providers that pass reputation policy. Use when asked about available providers or before procuring.';
+  parameters = z.object({
+    serviceType: z
+      .enum(['filecoin-storage', 'akash-compute', 'akash-gpu'])
+      .optional()
+      .describe('Filter by service type'),
+    maxBudgetHBAR: z
+      .number()
+      .optional()
+      .describe('Optional budget hint in HBAR (enforced at procurement time)'),
+  });
+
+  async normalizeParams(params) {
+    return {
+      serviceType: params.serviceType,
+      maxBudgetHBAR: params.maxBudgetHBAR != null ? Number(params.maxBudgetHBAR) : undefined,
+    };
+  }
+
+  async coreAction(normalisedParams, context) {
+    const { policyEngine, reputationService } = getServices(context);
+    const minReputation = policyEngine.reputationPolicy.minReputationScore;
+    const providers = reputationService.listProviders({
+      serviceType: normalisedParams.serviceType ?? 'filecoin-storage',
+      minReputation,
+      availableOnly: true,
+    });
+
+    return {
+      serviceType: normalisedParams.serviceType ?? 'filecoin-storage',
+      minReputationRequired: minReputation,
+      maxBudgetHBAR: normalisedParams.maxBudgetHBAR ?? null,
+      providers: providers.map((p) => ({
+        id: p.id,
+        serviceType: p.serviceType,
+        reputationScore: Number(p.reputationScore.toFixed(2)),
+        verificationLevel: p.verificationLevel,
+        available: p.available,
+      })),
+      note: 'Budget and allowlist policies apply when you create a procurement request.',
+    };
+  }
+
+  async secondaryAction() {
+    return null;
+  }
+
+  async shouldSecondaryAction() {
+    return false;
+  }
+
+  outputParser(rawOutput) {
+    const data = typeof rawOutput === 'string' ? JSON.parse(rawOutput) : rawOutput;
+    const lines = data.providers.map(
+      (p) => `${p.id} (${p.serviceType}) — reputation ${p.reputationScore}, ${p.verificationLevel}`,
+    );
+    return {
+      raw: data,
+      humanMessage:
+        lines.length > 0
+          ? `Providers passing reputation policy (≥${data.minReputationRequired}): ${lines.join('; ')}`
+          : 'No providers match the reputation policy for this service type.',
+    };
+  }
 }
 
 export class ProcureFilecoinStorageTool extends BaseTool {

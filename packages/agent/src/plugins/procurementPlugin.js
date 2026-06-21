@@ -1,4 +1,5 @@
 import {
+  ListInfrastructureProvidersTool,
   ProcureFilecoinStorageTool,
   ProcureAkashComputeTool,
   SwapHbarToFilTool,
@@ -11,6 +12,7 @@ export const procurementPlugin = {
   version: '1.0.0',
   description: 'PolicyMesh decentralized infrastructure procurement tools',
   tools: (context) => [
+    new ListInfrastructureProvidersTool(),
     new ProcureFilecoinStorageTool(),
     new ProcureAkashComputeTool(),
     new SwapHbarToFilTool(),
@@ -20,6 +22,7 @@ export const procurementPlugin = {
 };
 
 export const procurementToolMethods = [
+  'list_infrastructure_providers',
   'procure_filecoin_storage',
   'procure_akash_compute',
   'swap_hbar_to_fil',
