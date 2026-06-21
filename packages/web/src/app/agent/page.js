@@ -68,9 +68,18 @@ export default function AgentPage() {
               >
                 {msg.content}
                 {msg.toolCalls?.length > 0 && (
-                  <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs text-slate-200">
-                    {JSON.stringify(msg.toolCalls, null, 2)}
-                  </pre>
+                  <details className="mt-2 text-xs text-slate-500">
+                    <summary className="cursor-pointer select-none hover:text-slate-700">
+                      Tools used ({msg.toolCalls.filter((t) => t.name !== 'model').length})
+                    </summary>
+                    <ul className="mt-1 list-inside list-disc space-y-0.5 pl-1">
+                      {msg.toolCalls
+                        .filter((t) => t.name && t.name !== 'model')
+                        .map((t, j) => (
+                          <li key={j}>{t.name.replace(/_/g, ' ')}</li>
+                        ))}
+                    </ul>
+                  </details>
                 )}
               </div>
             ))}
