@@ -3,7 +3,6 @@
   "buildCommand": "npm install && npm run build --workspace=@policymesh/web",
   "devCommand": "npm run dev --workspace=@policymesh/web",
   "installCommand": "npm install",
-  "outputDirectory": "packages/web/.next",
   "framework": "nextjs",
   "rewrites": [
     {
